@@ -13,6 +13,7 @@ This project is a part of a collaboration between different teams in order to ac
   - build - Contains all object files.
   - doc - Documentation and notes from the developers.
   - include - The project header files can be found here.
+  - docker - Location of the docker build files.
 
   ### How the layout works
   text here
