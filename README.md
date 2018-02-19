@@ -6,14 +6,14 @@ This project is a part of a collaboration between different teams in order to ac
 ## Description of folder layout
 
   ### Representation of the layout
-  - src - The source files for the application.
-  - test - All the tests can be found in this folder.
-  - lib - The libraries that are needed for the program to run.
-  - bin - This is the folder where the compiled executables will be found.
-  - build - Contains all object files.
-  - doc - Documentation and notes from the developers.
-  - include - The project header files can be found here.
-  - docker - Location of the docker build files.
+  - src 
+  - test 
+  - lib 
+  - bin 
+  - build 
+  - doc
+  - include
+  - docker
 
   ### How the layout works
   - src is used for storing the source files for the application.
