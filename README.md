@@ -23,7 +23,7 @@ This project is a part of a collaboration between different teams in order to ac
   - build contains all object files.
   - doc is used for storing documentation and notes from the developers
   - include is a folder where all the header files can be found.
-  - docler location of the docker build files.
+  - docker is the location of the docker build files.
 
 ## Cloning, Building and Testing the Project
 
