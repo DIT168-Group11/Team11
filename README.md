@@ -34,4 +34,4 @@ Clone the file using git with fetching information from our githubpage using the
 Go to the build folder using terminal and use `cmake ..` command and afterward run the `make` command.
 
 ### Testing
-After you are done with the building use the `./main` command open a new terminal in the build folder and use the `./main` command again, after doing so the program should expect you to write a number after entering it the second terminal should be showing the entered nummber.
+After you are done with the building run the main binary `./main` open a new terminal in the build folder and run the main binary `./main` again, after doing so the program should expect you to write a number after entering it the second terminal should be showing the entered nummber.
