@@ -25,4 +25,4 @@ Make sure that you have the [libcluon](https://github.com/chrberger/libcluon) de
 Go to the build folder using terminal and use the `cmake ..` command and afterward run the `make` command.
 
 ### Testing
-After you are done with the building, run the binary `./bin/messageFetch` open a new terminal in the build folder and run the binary `./bin/messageSend`. After doing so the `messageSend` binary will send 3 random generated number messages to the `messageFetch` binary. You can see the output in the terminal of both of the binaries and compare the messages.
+After you are done with the building, run the binary `./bin/carComm.messageFetch` open a new terminal in the build folder and run the binary `./bin/carComm.messageSend`. After doing so the `carComm.messageSend` binary will send 3 random generated number messages to the `carComm.messageFetch` binary. You can see the output in the terminal of both of the binaries and compare the messages.
