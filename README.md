@@ -31,7 +31,7 @@ This project is a part of a collaboration between different teams in order to ac
 Clone the file using git with fetching information from our githubpage using the link from our repository or download it from the github page as a .Zip file. 
 
 ### Building
-Go to the build folder using terminal and use 'cmake ..' command and afterward run the make command.
+Go to the build folder using terminal and use `cmake ..` command and afterward run the `make` command.
 
 ### Testing
-After you are done with the building use the ./main command oppen a new terminal in the build folder and use the ./main command, after doing so the program should expect you to write a number after entering it the second terminal should be showing the entered nummber.
+After you are done with the building use the `./main` command open a new terminal in the build folder and use the `./main` command again, after doing so the program should expect you to write a number after entering it the second terminal should be showing the entered nummber.
