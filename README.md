@@ -16,7 +16,14 @@ This project is a part of a collaboration between different teams in order to ac
   - docker - Location of the docker build files.
 
   ### How the layout works
-  text here
+  - src is used for storing the source files for the application.
+  - test is a folder where all the tests cam be found.
+  - lib is used to store all the libraries needed for the program to run.
+  - bin a folder that consists of all the executables.
+  - build contains all object files.
+  - doc is used for storing documentation and notes from the developers
+  - include is a folder where all the header files can be found.
+  - docler location of the docker build files.
 
 ## Cloning, Building and Testing the Project
 
