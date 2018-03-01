@@ -28,5 +28,24 @@ Go to the build folder using terminal and use the `cmake ..` command and afterwa
 ### Testing
 After you are done with the building, run the binary `./bin/carComm.messageFetch` open a new terminal in the build folder and run the binary `./bin/carComm.messageSend`. After doing so the `carComm.messageSend` binary will send 3 random generated number messages to the `carComm.messageFetch` binary. You can see the output in the terminal of both of the binaries and compare the messages.
 
-## [License](https://www.gnu.org/licenses/gpl-3.0.en.html)
-GNU general public license.
+## Package Software using Docker
+
+### Install all dependencies into Docker container
+apk update
+apk --no-cache add ca-certificates cmake g++ make
+apk add libcluon --no-cache --repository https://chrberger.github.io/libcluon/alpine/v3.7 --allow-untrusted
+
+### Manually building with Docker
+cd /path
+mkdir build && cd build
+cmake ..
+make && make test
+./helloworld 
+It is an example above, you should rename the path and project according to your project, after above steps you should create a Dockerfile
+
+### Running and Testing the build 
+docker build -t myrepository/mydockerimage .
+docker run --rm -ti --net=host myrepository/mydockerimage
+
+### Saving Docker image
+docker save myrepository/mydockerimage > myImage.tar
