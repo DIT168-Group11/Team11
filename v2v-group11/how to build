@@ -1,0 +1,1 @@
+docker build -t group11/v2v -f Dockerfile.armhf . - For armhf
