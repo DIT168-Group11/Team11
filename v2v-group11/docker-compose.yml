@@ -24,4 +24,4 @@ services:
         image: group11/v2v
         network_mode: "host"
         restart: always
-        command: "/opt/group11-V2V --cid=220 --freq=10 --ip=172.20.10.13 --id=11"
+        command: "/opt/group11-V2V --cid=220 --freq=1 --ip=192.168.0.43 --id=11"
