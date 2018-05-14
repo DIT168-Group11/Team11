@@ -6,7 +6,7 @@ services:
         restart: always
         volumes:
         - .:/opt/miniature.data
-        command: "/opt/od4/bin/odsupercomponent --cid=220 --verbose=1 --configuration=/opt/miniature.data/configuration"
+        command: "/opt/od4/bin/odsupercomponent --cid=140 --verbose=1 --configuration=/opt/miniature.data/configuration"
 
     proxy-miniature-pwm-motor:
         image: seresearch/2018-dit-168:v0.3.5-armhf
@@ -18,10 +18,21 @@ services:
         volumes:
         - /sys/:/sys/
         - /dev/:/dev/
-        command: "/opt/opendlv.miniature/bin/opendlv-proxy-miniature-pwm-motor --cid=220 --freq=50 --id=1"
+        command: "/opt/opendlv.miniature/bin/opendlv-proxy-miniature-pwm-motor --cid=140 --freq=50 --id=1"
 
     V2V:
-        image: group11/v2v
+        image: cyka7
         network_mode: "host"
+        depends_on:
+        - device-ultrasonic-srf08-front
         restart: always
-        command: "/opt/group11-V2V --cid=220 --freq=1 --ip=192.168.0.43 --id=11"
+        command: "/opt/V2V.Service --freq=5 --ip=192.168.1.237"
+
+    device-ultrasonic-srf08-front:
+        image: chalmersrevere/opendlv-device-ultrasonic-srf08-armhf:v0.0.6
+        network_mode: "host"
+        privileged: true
+        volumes:
+          - /dev/i2c-1:/dev/i2c-1
+        command: "/usr/bin/opendlv-device-ultrasonic-srf08 --dev=/dev/i2c-1 --bus-address=221 --cid=141 --freq=5 --id=0"
+
