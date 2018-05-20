@@ -1,0 +1,14 @@
+message opendlv.proxy.GroundSteeringReading [id = 1045] {
+  float steeringAngle [id = 1];
+}
+
+message opendlv.proxy.PedalPositionReading [id = 1041] {
+  float percent [id = 1];
+}
+
+message VehicleControl [id = 9999] {  
+  float pedalPosition [id = 1];
+  float steeringAngle [id = 2];
+  int odometerData [id = 3];
+}
+
