@@ -5,31 +5,25 @@ opendlv::proxy::PedalPositionReading msgPedal;
 
 int main(int argc, char **argv) {
 
-    auto arguments = cluon::getCommandlineArguments(argc, argv);
-    //assign values to variables
-    const std::string carIP = arguments["ip"];
-    const std::string carID = "11";
-    uint16_t cid = 220;
-    uint16_t cid2 = 221;
-    //leader car id
+    auto externalArguments = cluon::getCommandlineArguments(argc, argv); 
+    const uint16_t freq = (uint16_t) std::stoi(externalArguments["freq"]);
+    const bool followerStat = false; //IF TRUE CAR IS FOLLOWER IS FALSE CAR IS LEADER
+    const std::string carIP = externalArguments["ip"];
+    
+    //ID OF THE LEADER CAR
     const std::string leaderId = "3";
-    const uint16_t runFreq = (uint16_t) std::stoi(arguments["freq"]);
-    //true as follower - false as leader 
-    const bool FOLLOW = false;
-    //calibrated delay to follow
-    const int counter = 22;
-
-
-    std::shared_ptr<V2VService> v2vService = std::make_shared<V2VService>(carIP, carID);
-	std::cout << "leaderID: " << leaderId << "Following mode: " << FOLLOW << std::endl;
-
-    const float obstacle_distance = 0.22;
-
     float speed = 0;
     float angle = 0;
     float remote_distance = 50;
-    //Fetch and assign driving valuse from the car
-    cluon::OD4Session od4(cid, [&speed, &angle](cluon::data::Envelope &&envelope) noexcept {
+    float remote_speed = 0;
+    float remote_angle = 0;
+    static int cunt = 0;
+    static float steer = 1;
+  
+    std::shared_ptr<V2VService> v2v_Communication = std::make_shared<V2VService>(carIP, "11");
+	    
+    //FETCH THE VARIABLES FROM THE CAR AND ASSIGN THEM TO VARIABLES
+    cluon::OD4Session od4(220, [&speed, &angle](cluon::data::Envelope &&envelope) noexcept {
         if (envelope.dataType() == opendlv::proxy::PedalPositionReading::ID()) {
             opendlv::proxy::PedalPositionReading pedalPositionReading =
                 cluon::extractMessage<opendlv::proxy::PedalPositionReading>(std::move(envelope));
@@ -40,19 +34,11 @@ int main(int argc, char **argv) {
                 cluon::extractMessage<opendlv::proxy::GroundSteeringReading>(std::move(envelope));
             angle = groundSteeringReading.groundSteering();
         }
-        // if (envelope.dataType() == opendlv::proxy::DistanceReading::ID()) {
-        //     opendlv::proxy::DistanceReading remoteDistanceMsg = 
-        //         cluon::extractMessage<opendlv::proxy::DistanceReading>(std::move(envelope));
-        //     remote_distance = remoteDistanceMsg.distance();
-        // }
+       
     });
 
-    // GETTING MSGs FROM REMOTE
-    float remote_speed = 0;
-    float remote_angle = 0;
-    
-
-    cluon::OD4Session od4_remote(cid2,[&remote_speed, &remote_angle, &remote_distance](cluon::data::Envelope &&envelope) noexcept {
+    //GETTING MSGs FROM THE REMOTE CONTROL, AND ASSIGN THEM TO VARIABLES
+    cluon::OD4Session od4_remote(221,[&remote_speed, &remote_angle, &remote_distance](cluon::data::Envelope &&envelope) noexcept {
         if (envelope.dataType() == opendlv::proxy::PedalPositionReading::ID()) {
             opendlv::proxy::PedalPositionReading remoteSpeedMsg = cluon::extractMessage<opendlv::proxy::PedalPositionReading>(std::move(envelope));
             remote_speed = remoteSpeedMsg.position();
@@ -68,92 +54,89 @@ int main(int argc, char **argv) {
         }
     });
 
-    static int cunt = 0;
-    static float steer = 1;
+    
 
-       //Runs announce pressence and leader status
-        //If an IP of a car is registered, leaderStatus will run, while announcePresence not, and vice-versa
-        //Fetches the lates car speed and steering angle values before sending.
-    auto communication{[&v2vService, &speed, &angle, &remote_speed, &remote_angle, &remote_distance, &obstacle_distance, &cid, &FOLLOW, &leaderId, &od4_remote, &od4]() -> bool {
+    //FUNCTION THAT PERFORMS ANNOUNCE PRESENCE AND LEADER STATUS
+    
+    //IF A CAR IP IS REGISTERED, LEADER STATUS WILL RUN, AND ANNOUNCE PRESENCE WON'T -- and VICE-VERSA
+    //FETCHES THE LATEST CAR SPEED AND STEERING ANGLE VALUES, AND DECIDES WHICH ONES TO SEND.
+    auto v2v{[&v2v_Communication, &speed, &angle, &remote_speed, &remote_angle, &remote_distance, &followerStat, &leaderId, &od4_remote, &od4]() -> bool {
 
+    	opendlv::proxy::GroundSteeringReading msgAngle;
+        opendlv::proxy::PedalPositionReading msgSpeed;
 
-        v2vService->announcePresence();
-        //getting leader ip
-        std::string ip = v2vService->getIPfromID(leaderId);
+        v2v_Communication->announcePresence();
+        //GETTING THE IP FROM THE LEADER
+        std::string leaderIp = v2v_Communication->getIp(leaderId);
         
-        // STOP IF DISTANCE IS LESS THAN WE WANT
-        if(obstacle_distance >= remote_distance){
+        // STOP IF DISTANCE IS LESS THAN WHAT WE WANT
+        if(0.22 >= remote_distance){
             // STOPS THE CAR
-            std::cout << "remote distance = " << remote_distance << std::endl;
-            std::cout << "OBSTACLE DETECTED!!! CAR IS STOPPING!!!" << std::endl;
             msgPedal.position(0.0);
             od4_remote.send(msgPedal);
             
         }else{
-            //sending the proxy with steering messages that we get from the remote or v2v(other car)
+            //SEND THE VALUES FROM THE REMOTE CONTROL TO THE PROXY
             msgPedal.position(remote_speed);
             od4_remote.send(msgPedal);
             msgSteering.groundSteering(remote_angle);
             od4_remote.send(msgSteering);
         }
-
-        opendlv::proxy::GroundSteeringReading msgAngle;
-        opendlv::proxy::PedalPositionReading msgSpeed;
-
-        
-        //cheking for car leader or follower status
-        if(FOLLOW){
-            //sending follow request after announce pressense 
-            v2vService->followRequest(ip);
-            v2vService->followerStatus();
-
-            //Follow messages using UDP inbox
-            if(!v2vService->commandQ.empty()){
+  
+        //CHECK FOR LEADER OR FOLLOWER STATUS
+        if(followerStat){
+            //SEND FOLLOW REQUEST AFTER ANNOUNCE PRESENCE
+            v2v_Communication->followRequest(leaderIp);
+            v2v_Communication->followerStatus();
+ 
+            //GET MESSAGES QUEUE
+            if(!v2v_Communication->commandQ.empty()){
 
             	float speedIncrease = 0.01;
+                float recievedAngle = v2v_Communication->commandQ.front().steeringAngle();
+                float recievedSpeed = v2v_Communication->commandQ.front().speed();
 
-                //leader angle and speed
-                float leader_angle = v2vService->commandQ.front().steeringAngle();
-                float leader_speed = v2vService->commandQ.front().speed();
-
-                if(leader_speed != 0){
-                	leader_speed += speedIncrease;
-                }
-                if(leader_angle != steer){
+				if(steer != recievedAngle){
+                	//INCREMENT COUNTER THAT ALLOWS FOR FOLLOWING DELAY
                 	cunt++;
                 }
 
-                if(cunt >= counter){
-                	msgAngle.groundSteering(leader_angle);
+                if(recievedSpeed != 0){
+                	//CHANGES THE SPEED ACCORDING TO THE LEADER's SPEED
+                	recievedSpeed += speedIncrease;
+                }
+                
+
+                if(22 <= cunt){
+                	//START EXECUTION OF COMMANDS WHEN LIMIT IS REACHED
+                	msgAngle.groundSteering(recievedAngle);
                 	od4.send(msgAngle);
-                	steer = leader_angle;
+                	steer = recievedAngle;
                 	cunt = 0;
                 }
 
-                //deleting last message
-                v2vService->commandQ.pop();
-
-                std::cout << "Speed: " << leader_speed << " Angle: " << leader_angle << std::endl;
-           
-                msgSpeed.position(leader_speed);
+                msgSpeed.position(recievedSpeed);
                 od4.send(msgSpeed);
             }else{
-                //set speed to 0
+                //STOP CAR IF NO COMMANDS ARE RECEIVED
                 msgSpeed.position(0.0);
                 od4.send(msgSpeed);
             }
 
         }else{
+        	//DEFAULT ACTION
         	msgAngle.groundSteering(remote_angle);
         	od4.send(msgAngle);
         	msgSpeed.position(remote_speed);
         	od4.send(msgSpeed);
-            v2vService->leaderStatus(remote_speed, remote_angle, 11);
-            std::cout << "Speed: " << remote_speed << " Angle: "<< remote_angle << std::endl;
+            v2v_Communication->leaderStatus(remote_speed, remote_angle, 11);
+            
         }
         return true;
     }};
-    od4.timeTrigger(runFreq, communication);
+
+    //REPEAT THE FUNCTION ACCORDING TO FREQ
+    od4.timeTrigger(freq, v2v);
 }
 
 /**
@@ -417,7 +400,7 @@ T V2VService::decode(std::string data) {
     return tmp;
 }
 
-std::string V2VService::getIPfromID(std::string id){
+std::string V2VService::getIp(std::string id){
     //std::cout << "IP IS" << presentCars[id] << std::endl;
     return presentCars[id];
 }
